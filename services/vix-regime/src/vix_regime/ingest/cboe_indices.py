@@ -1,6 +1,6 @@
 """CBOE delayed index quotes (15-min delayed, public CDN).
 
-Endpoint per symbol: https://cdn.cboe.com/api/global/delayed_quotes/quotes/_{SYM}.json
+Endpoint per symbol: https://cdn-api.cboe.com/api/global/delayed_quotes/quotes/_{SYM}.json
 """
 
 from __future__ import annotations
@@ -14,7 +14,7 @@ from vix_regime.models import IndexQuote
 
 INDEX_SYMBOLS = ["VIX", "VIX9D", "VIX3M", "VIX6M", "VIX1Y", "VVIX", "SKEW"]
 
-_QUOTE_URL = "https://cdn.cboe.com/api/global/delayed_quotes/quotes/_{symbol}.json"
+_QUOTE_URL = "https://cdn-api.cboe.com/api/global/delayed_quotes/quotes/_{symbol}.json"
 
 
 def parse_index_quote(symbol: str, raw: dict[str, Any]) -> IndexQuote:

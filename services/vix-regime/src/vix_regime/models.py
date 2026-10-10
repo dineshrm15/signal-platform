@@ -49,9 +49,7 @@ class FuturesCurve(BaseModel):
 
     @property
     def monthlies(self) -> list[FuturesContract]:
-        return sorted(
-            (c for c in self.contracts if not c.is_weekly), key=lambda c: c.expiration
-        )
+        return sorted((c for c in self.contracts if not c.is_weekly), key=lambda c: c.expiration)
 
 
 class CashTermStructure(BaseModel):

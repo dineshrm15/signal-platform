@@ -20,9 +20,7 @@ def percentile_of(value: float, history: list[float]) -> float | None:
     return bisect_left(ordered, value) / len(ordered)
 
 
-def percentile_context(
-    value: float, daily_closes: list[float]
-) -> dict[str, float | None]:
+def percentile_context(value: float, daily_closes: list[float]) -> dict[str, float | None]:
     """`daily_closes` ordered oldest -> newest. Windows: trailing 1y and 5y."""
     return {
         "1y": percentile_of(value, daily_closes[-TRADING_DAYS_1Y:]),

@@ -19,15 +19,15 @@ from vix_regime.models import (
 
 # Percentile thresholds (fractions of the trailing window, 0..1).
 THRESHOLDS = {
-    "vix_5y_extreme": 0.99,        # CAPITULATION: VIX above 99th pctl of 5y
-    "vix9d_vix_panic": 1.10,       # CAPITULATION support: short-vol demand spike
-    "vix_1y_elevated": 0.70,       # RISK_OFF: elevated VIX context
-    "vvix_1y_high": 0.80,          # RISK_OFF / COMPRESSED_SPRING: vol-of-vol rich
-    "vix_1y_stress": 0.60,         # STRESS_BUILDING: VIX creeping up
+    "vix_5y_extreme": 0.99,  # CAPITULATION: VIX above 99th pctl of 5y
+    "vix9d_vix_panic": 1.10,  # CAPITULATION support: short-vol demand spike
+    "vix_1y_elevated": 0.70,  # RISK_OFF: elevated VIX context
+    "vvix_1y_high": 0.80,  # RISK_OFF / COMPRESSED_SPRING: vol-of-vol rich
+    "vix_1y_stress": 0.60,  # STRESS_BUILDING: VIX creeping up
     "vix9d_vix_flattening": 0.95,  # STRESS_BUILDING: near-inversion of 9D/30D
-    "twist_front_bid": -0.50,      # STRESS_BUILDING: front rising vs back (vol pts)
-    "vix_1y_calm": 0.35,           # COMPRESSED_SPRING: calm surface
-    "skew_1y_rich": 0.80,          # COMPRESSED_SPRING: tail hedging rich
+    "twist_front_bid": -0.50,  # STRESS_BUILDING: front rising vs back (vol pts)
+    "vix_1y_calm": 0.35,  # COMPRESSED_SPRING: calm surface
+    "skew_1y_rich": 0.80,  # COMPRESSED_SPRING: tail hedging rich
 }
 
 
@@ -112,10 +112,7 @@ def _signals(inputs: RegimeInputs) -> dict[Regime, tuple[list[Signal], list[Sign
         ),
         Signal(
             "short_end_inverted_elevated",
-            r9d is not None
-            and r9d > 1.0
-            and vix_1y is not None
-            and vix_1y >= t["vix_1y_elevated"],
+            r9d is not None and r9d > 1.0 and vix_1y is not None and vix_1y >= t["vix_1y_elevated"],
             f"9D>30D inversion (VIX9D/VIX = {r9d}) with VIX at {_fmt_pct(vix_1y)} of 1y range",
         ),
     ]
@@ -169,17 +166,19 @@ def _signals(inputs: RegimeInputs) -> dict[Regime, tuple[list[Signal], list[Sign
         ),
     ]
 
+    vvix_rich = vvix_1y is not None and vvix_1y >= t["vvix_1y_high"]
+    skew_rich = skew_1y is not None and skew_1y >= t["skew_1y_rich"]
+    rich_parts = [
+        f"{name} {_fmt_pct(p)}"
+        for name, p, rich in (("VVIX", vvix_1y, vvix_rich), ("SKEW", skew_1y, skew_rich))
+        if rich
+    ]
     spring_triggers = [
         Signal(
             "calm_surface_rich_tails",
-            vix_1y is not None
-            and vix_1y <= t["vix_1y_calm"]
-            and (
-                (vvix_1y is not None and vvix_1y >= t["vvix_1y_high"])
-                or (skew_1y is not None and skew_1y >= t["skew_1y_rich"])
-            ),
+            vix_1y is not None and vix_1y <= t["vix_1y_calm"] and (vvix_rich or skew_rich),
             f"VIX calm ({_fmt_pct(vix_1y)} of 1y range) but hedging demand rich "
-            f"(VVIX {_fmt_pct(vvix_1y)}, SKEW {_fmt_pct(skew_1y)} of 1y range)",
+            f"({', '.join(rich_parts)} of 1y range)",
         ),
     ]
     spring_supports = [
@@ -205,9 +204,7 @@ def _signals(inputs: RegimeInputs) -> dict[Regime, tuple[list[Signal], list[Sign
         Signal(
             "futures_carry",
             fut_slope in (SlopeState.STEEP_CONTANGO, SlopeState.CONTANGO),
-            f"futures roll-down carry intact (M1→M2 {fut.m1_m2_roll_yield_pct}%)"
-            if fut
-            else "",
+            f"futures roll-down carry intact (M1→M2 {fut.m1_m2_roll_yield_pct}%)" if fut else "",
         ),
     ]
 
@@ -228,6 +225,11 @@ _ORDER = [
 ]
 
 
+def _sentence_case(text: str) -> str:
+    # str.capitalize() would lowercase tickers like VIX/VVIX/SKEW mid-sentence.
+    return text[:1].upper() + text[1:]
+
+
 def classify(inputs: RegimeInputs) -> RegimeAssessment:
     signal_map = _signals(inputs)
 
@@ -237,15 +239,13 @@ def classify(inputs: RegimeInputs) -> RegimeAssessment:
         if not fired_triggers:
             continue
         fired_supports = [s for s in supports if s.fired]
-        confidence = min(
-            0.95, 0.55 + 0.10 * (len(fired_triggers) - 1) + 0.10 * len(fired_supports)
-        )
+        confidence = min(0.95, 0.55 + 0.10 * (len(fired_triggers) - 1) + 0.10 * len(fired_supports))
         fired = fired_triggers + fired_supports
         rationale = "; ".join(s.text for s in fired if s.text) + "."
         return RegimeAssessment(
             label=label,
             confidence=round(confidence, 2),
-            rationale=rationale.capitalize(),
+            rationale=_sentence_case(rationale),
             fired_rules=[s.name for s in fired],
         )
 
@@ -260,7 +260,7 @@ def classify(inputs: RegimeInputs) -> RegimeAssessment:
     return RegimeAssessment(
         label=Regime.CALM_CARRY,
         confidence=round(confidence, 2),
-        rationale=rationale.capitalize(),
+        rationale=_sentence_case(rationale),
         fired_rules=[s.name for s in fired_supports],
     )
 

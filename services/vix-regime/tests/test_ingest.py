@@ -1,11 +1,39 @@
 import json
 from pathlib import Path
 
+import httpx
+import pytest
+import respx
+from vix_regime.config import data_client, push_client
 from vix_regime.ingest.cboe_futures import parse_futures_curve
-from vix_regime.ingest.cboe_indices import INDEX_SYMBOLS, parse_index_quote
+from vix_regime.ingest.cboe_indices import INDEX_SYMBOLS, fetch_index_quotes, parse_index_quote
 from vix_regime.ingest.history import parse_history_csv
 
 FIXTURES = Path(__file__).parent / "fixtures"
+
+
+@respx.mock
+def test_data_client_survives_upstream_host_move(caplog):
+    raw = json.loads((FIXTURES / "index_VIX.json").read_text())
+    respx.get(url__regex=r"https://cdn-api\.cboe\.com/.*_VIX\.json").mock(
+        return_value=httpx.Response(307, headers={"location": "https://moved.example.org/vix"})
+    )
+    respx.get("https://moved.example.org/vix").mock(return_value=httpx.Response(200, json=raw))
+    with data_client() as client:
+        quotes = fetch_index_quotes(client, ["VIX"])
+    assert quotes["VIX"].price > 0
+    assert "upstream endpoint moved" in caplog.text
+
+
+@respx.mock
+def test_push_client_never_follows_redirects():
+    respx.post("https://hooks.example.org/x").mock(
+        return_value=httpx.Response(307, headers={"location": "https://169.254.169.254/"})
+    )
+    internal = respx.post("https://169.254.169.254/").mock(return_value=httpx.Response(200))
+    with push_client() as client, pytest.raises(httpx.HTTPStatusError):
+        client.post("https://hooks.example.org/x", json={}).raise_for_status()
+    assert not internal.called
 
 
 def test_parse_all_index_fixtures():

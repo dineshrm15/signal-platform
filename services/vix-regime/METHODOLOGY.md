@@ -99,7 +99,26 @@ Confidence expresses rule agreement, **not** probability of future market direct
 
 A transition is recorded whenever the regime label of a new snapshot differs from the
 previous snapshot's label. The transition log (timestamp, from, to, rationale) is exposed
-via the `get_regime_transitions` tool and will drive push notifications.
+via the `get_regime_transitions` tool.
+
+## Alerts
+
+Each subscriber chooses triggers; every trigger compares the previous snapshot with the
+new one ([alerts.py](src/vix_regime/alerts.py)). Nothing is sent on the first snapshot.
+
+| Trigger | Fires when | Priority | Cooldown |
+|---------|------------|----------|----------|
+| `regime_change` (default) | regime label differs from the previous snapshot; optional `to` filter limits it to moves into specific labels | `high` into STRESS_BUILDING / RISK_OFF, `urgent` into CAPITULATION, else `default` | none |
+| `curve_inversion` | cash and/or futures slope crosses between non-inverted and inverted, where inverted = BACKWARDATION or INVERTED_CRISIS. Fires on inversion and on re-normalization. Deepening from BACKWARDATION to INVERTED_CRISIS is not a new event (the regime label covers that). A missing futures curve is never treated as re-normalization. | `high` on inversion, `default` on re-normalization | none |
+| `percentile_cross` | a metric's 1y or 5y percentile crosses the subscriber's threshold between snapshots (`up`, `down`, or `both`) | `default` | 6 hours per metric/threshold/direction, so noise around a threshold cannot spam |
+
+If one subscriber has overlapping triggers that describe the same event, it is sent once.
+
+Delivery: ntfy (topic on ntfy.sh, or a self-hosted https topic URL) or a webhook (JSON
+POST to an https URL). A subscription is created only if its welcome message is
+delivered; it is deactivated after 5 consecutive failed deliveries. Webhook targets that
+resolve to private, loopback, or link-local addresses are rejected, and deliveries never
+follow redirects.
 
 ## Known limitations
 

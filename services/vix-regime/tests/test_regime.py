@@ -45,6 +45,9 @@ def test_compressed_spring():
     result = classify(_inputs(vix=13, vix9d=11.7, vix3m=15, vix_1y=0.2, vvix_1y=0.9))
     assert result.label == Regime.COMPRESSED_SPRING
     assert "calm_surface_rich_tails" in result.fired_rules
+    assert result.rationale.startswith("VIX calm")  # tickers keep their case
+    assert "VVIX 90%" in result.rationale
+    assert "SKEW" not in result.rationale  # only the readings that made the rule fire
 
 
 def test_stress_building_on_flat_curve():
@@ -67,17 +70,16 @@ def test_risk_off_on_backwardation():
 
 
 def test_capitulation():
-    result = classify(
-        _inputs(vix=45, vix9d=55, vix3m=30, vix_1y=1.0, vix_5y=0.995, vvix_1y=0.99)
-    )
+    result = classify(_inputs(vix=45, vix9d=55, vix3m=30, vix_1y=1.0, vix_5y=0.995, vvix_1y=0.99))
     assert result.label == Regime.CAPITULATION
     assert result.confidence >= 0.7
     assert "cash_inverted_crisis" in result.fired_rules
 
 
 def test_missing_percentiles_do_not_crash():
-    result = classify(_inputs(vix=13, vix9d=11.7, vix3m=16, vix_1y=None, vix_5y=None,
-                              vvix_1y=None, skew_1y=None))
+    result = classify(
+        _inputs(vix=13, vix9d=11.7, vix3m=16, vix_1y=None, vix_5y=None, vvix_1y=None, skew_1y=None)
+    )
     assert result.label == Regime.CALM_CARRY
 
 

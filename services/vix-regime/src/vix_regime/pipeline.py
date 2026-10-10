@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import logging
+from dataclasses import dataclass
 from datetime import UTC, datetime, timedelta
+from typing import Any
 
 import httpx
 from signal_platform import SnapshotStore
@@ -58,8 +60,19 @@ def _daily_closes(store: SnapshotStore, symbol: str) -> list[float]:
     return [float(r.payload["close"]) for r in rows]
 
 
-def run_snapshot(store: SnapshotStore, client: httpx.Client) -> tuple[Snapshot, bool]:
-    """Returns (snapshot, transitioned)."""
+def latest_daily_as_of(store: SnapshotStore, symbol: str = "VIX") -> datetime | None:
+    row = store.get_latest(SERVICE_NAME, KIND_DAILY.format(symbol=symbol))
+    return row.as_of if row else None
+
+
+@dataclass(frozen=True)
+class SnapshotResult:
+    snapshot: Snapshot
+    previous: dict[str, Any] | None  # prior snapshot payload, for change detection
+    transitioned: bool
+
+
+def run_snapshot(store: SnapshotStore, client: httpx.Client) -> SnapshotResult:
     indices = fetch_index_quotes(client)
     try:
         curve = fetch_futures_curve(client)
@@ -68,9 +81,7 @@ def run_snapshot(store: SnapshotStore, client: httpx.Client) -> tuple[Snapshot, 
         curve = None
 
     cash = build_cash_term_structure(indices)
-    futures = (
-        build_futures_term_structure(curve, indices["VIX"].price) if curve else None
-    )
+    futures = build_futures_term_structure(curve, indices["VIX"].price) if curve else None
     percentiles = {
         symbol: percentile_context(quote.price, _daily_closes(store, symbol))
         for symbol, quote in indices.items()
@@ -109,4 +120,8 @@ def run_snapshot(store: SnapshotStore, client: httpx.Client) -> tuple[Snapshot, 
             log.info("regime transition: %s -> %s", prev_label, assessment.label.value)
 
     store.put(SERVICE_NAME, KIND_SNAPSHOT, as_of, snapshot.model_dump(mode="json"))
-    return snapshot, transitioned
+    return SnapshotResult(
+        snapshot=snapshot,
+        previous=prev.payload if prev else None,
+        transitioned=transitioned,
+    )

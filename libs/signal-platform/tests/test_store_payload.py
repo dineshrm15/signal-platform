@@ -28,9 +28,7 @@ def test_upsert_is_idempotent():
 def test_get_since_orders_and_filters():
     store = SqliteSnapshotStore(":memory:")
     base = datetime(2026, 8, 1, tzinfo=UTC)
-    store.put_many(
-        [("svc", "transition", base + timedelta(days=i), {"i": i}) for i in range(5)]
-    )
+    store.put_many([("svc", "transition", base + timedelta(days=i), {"i": i}) for i in range(5)])
     rows = store.get_since("svc", "transition", base + timedelta(days=2))
     assert [r.payload["i"] for r in rows] == [2, 3, 4]
 
@@ -45,9 +43,7 @@ def test_freshness_labels():
 def test_envelope_fields():
     as_of = datetime(2026, 8, 6, 20, 50, tzinfo=UTC)
     now = datetime(2026, 8, 6, 21, 0, tzinfo=UTC)
-    out = envelope(
-        {"x": 1}, as_of=as_of, attribution="attr", disclaimer="disc", now=now
-    )
+    out = envelope({"x": 1}, as_of=as_of, attribution="attr", disclaimer="disc", now=now)
     assert out["x"] == 1
     assert out["as_of"] == as_of.isoformat()
     assert out["data_freshness"] == "delayed_15min"

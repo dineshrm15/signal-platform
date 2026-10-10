@@ -78,7 +78,5 @@ def test_build_futures_term_structure_skips_weeklies():
 
 
 def test_build_futures_needs_two_monthlies():
-    curve = FuturesCurve(
-        contracts=[_contract("VX/Q6", date(2026, 8, 19), 17.0, 17.0)]
-    )
+    curve = FuturesCurve(contracts=[_contract("VX/Q6", date(2026, 8, 19), 17.0, 17.0)])
     assert build_futures_term_structure(curve, vix_spot=15.0) is None

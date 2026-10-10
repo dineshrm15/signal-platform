@@ -1,17 +1,21 @@
 import json
 from datetime import UTC, datetime, timedelta
 
+import httpx
 import pytest
+import respx
 from fastmcp import Client
 from signal_platform import SqliteSnapshotStore
+from signal_platform.push import SqliteSubscriptionStore
 from vix_regime.calc.regime import RegimeInputs, build_narrative, classify
 from vix_regime.calc.term_structure import build_cash_term_structure
 from vix_regime.config import SERVICE_NAME
 from vix_regime.models import IndexQuote, Snapshot
 from vix_regime.pipeline import KIND_SNAPSHOT, KIND_TRANSITION
-from vix_regime.server import mcp, set_store
+from vix_regime.server import mcp, set_store, set_subscriptions_enabled
 
-AS_OF = datetime(2026, 8, 6, 20, 15, tzinfo=UTC)
+# Relative to now: transition lookback windows are measured from the current time.
+AS_OF = datetime.now(UTC).replace(microsecond=0) - timedelta(minutes=10)
 
 
 def _quote(symbol: str, price: float) -> IndexQuote:
@@ -88,9 +92,7 @@ async def test_get_term_structure_cash_and_futures(seeded):
 
 async def test_get_regime_transitions(seeded):
     async with Client(mcp) as client:
-        out = _payload(
-            await client.call_tool("get_regime_transitions", {"lookback_days": 30})
-        )
+        out = _payload(await client.call_tool("get_regime_transitions", {"lookback_days": 30}))
     assert out["count"] == 2
     # newest first
     assert out["transitions"][0]["to"] == "CALM_CARRY"
@@ -111,3 +113,60 @@ async def test_no_snapshot_error():
         assert out["error"] == "no_snapshot_available"
     finally:
         set_store(None)
+
+
+@pytest.fixture
+def subs():
+    store = SqliteSubscriptionStore(":memory:")
+    set_store(_seeded_store(), store)
+    yield store
+    set_store(None)
+    set_subscriptions_enabled(True)
+
+
+@respx.mock
+async def test_subscribe_lifecycle(subs):
+    respx.post("https://ntfy.sh/").mock(return_value=httpx.Response(200))
+    async with Client(mcp) as client:
+        created = _payload(
+            await client.call_tool(
+                "subscribe",
+                {
+                    "channel": "ntfy",
+                    "target": "vol-test",
+                    "triggers": [
+                        {"type": "regime_change"},
+                        {"type": "percentile_cross", "metric": "VVIX", "threshold": 0.9},
+                    ],
+                },
+            )
+        )
+        sub_id = created["subscription_id"]
+        fetched = _payload(await client.call_tool("get_subscription", {"subscription_id": sub_id}))
+        cancelled = _payload(await client.call_tool("unsubscribe", {"subscription_id": sub_id}))
+        missing = _payload(await client.call_tool("unsubscribe", {"subscription_id": "sub_nope"}))
+    assert created["active"] is True
+    assert [t["type"] for t in fetched["triggers"]] == ["regime_change", "percentile_cross"]
+    assert cancelled["active"] is False
+    assert subs.list_active(SERVICE_NAME) == []
+    assert missing["error"] == "not_found"
+
+
+async def test_subscribe_rejects_unsafe_target(subs):
+    async with Client(mcp) as client:
+        out = _payload(
+            await client.call_tool(
+                "subscribe", {"channel": "webhook", "target": "https://169.254.169.254/x"}
+            )
+        )
+    assert out["error"] == "invalid_target"
+    assert subs.list_active(SERVICE_NAME) == []
+
+
+async def test_subscriptions_can_be_disabled(subs):
+    set_subscriptions_enabled(False)
+    async with Client(mcp) as client:
+        out = _payload(
+            await client.call_tool("subscribe", {"channel": "ntfy", "target": "vol-test"})
+        )
+    assert out["error"] == "subscriptions_disabled"

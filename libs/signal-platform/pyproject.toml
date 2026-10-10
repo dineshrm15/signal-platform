@@ -3,7 +3,7 @@ name = "signal-platform"
 version = "0.1.0"
 description = "Shared platform library for derived-signal MCP services"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = ["httpx>=0.27"]
 
 [build-system]
 requires = ["hatchling"]

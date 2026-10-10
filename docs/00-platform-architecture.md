@@ -79,8 +79,13 @@ No data licensing costs in v1. Real-time options data (GEX expansion) is a later
 3. **03 Grid** — largest build; ship in modules (rates → grid stress → outage risk)
 4. **04 Recall** — simplest calc; can parallelize with 03 if momentum is good
 
-## 7. Open Questions
+## 7. Decisions
 
-- Monorepo vs. per-service repos
-- ntfy.sh vs. Telegram bot as the free push channel
-- Whether to publish the platform template itself as an open-source "derived-signal MCP starter kit" (strong portfolio angle)
+- **Monorepo** (decided at 01 kickoff): `libs/signal-platform` + `services/<name>`, one uv workspace, one CI.
+- **ntfy as the free push channel, plus generic webhooks** (decided in 01 W3). No bot registration, works on phones, self-hostable. Telegram can be added as another channel in `signal_platform.push`.
+- **Subscription identity (v1):** the subscription id is an unguessable token and is the only credential needed to manage it. Targets must be reachable (welcome message delivered) and public (private/loopback addresses rejected, no redirects followed). Over HTTP, subscription tools are opt-in per deployment. Real accounts arrive with paid tiers.
+
+## 8. Open Questions
+
+- Whether to publish the platform template itself as an open-source "derived-signal MCP starter kit" (strong portfolio angle). `signal_platform` (store, payload envelope, push fan-out) is now the extractable part.
+- Go/no-go gate after 01 launch: what adoption signal justifies the full 02 investment.

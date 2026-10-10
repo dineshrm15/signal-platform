@@ -1,7 +1,7 @@
 """Historical daily closes for percentile context.
 
 CBOE publishes full daily history per index:
-https://cdn.cboe.com/api/global/us_indices/daily_prices/{SYM}_History.csv
+https://cdn-api.cboe.com/api/global/us_indices/daily_prices/{SYM}_History.csv
 Format: DATE,OPEN,HIGH,LOW,CLOSE with DATE as mm/dd/yyyy.
 Some series (e.g. SKEW) may expose fewer columns; the CLOSE column is located by header.
 """
@@ -15,7 +15,7 @@ from datetime import date, datetime
 
 import httpx
 
-_HISTORY_URL = "https://cdn.cboe.com/api/global/us_indices/daily_prices/{symbol}_History.csv"
+_HISTORY_URL = "https://cdn-api.cboe.com/api/global/us_indices/daily_prices/{symbol}_History.csv"
 
 
 def parse_history_csv(text: str) -> Iterator[tuple[date, float]]:
