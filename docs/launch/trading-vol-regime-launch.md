@@ -15,11 +15,12 @@ submitted.** Each external step is listed for the owner to do or approve.
 - [x] **License.** MIT (root `LICENSE`; `license = "MIT"` in each package). When
       publishing a package to PyPI, copy `LICENSE` into that package folder so the wheel
       includes it.
-- [ ] **Commit identity.** Set `git config user.email` to your GitHub noreply address
-      before pushing, so commits link to your account instead of a machine hostname.
-- [ ] **Repo visibility.** Create the GitHub repo (public), push, confirm CI is green.
+- [x] **Commit identity.** Commits use the GitHub noreply address (set in this repo's
+      git config).
+- [x] **Repo visibility.** Public at https://github.com/dineshrm15/signal-platform; CI green.
 - [ ] **PyPI package (optional, needed for some directories).** `uvx trading-vol-regime-server`
-      style install makes "one-line connect" real for people without the monorepo.
+      style install makes "one-line connect" real for people without the monorepo. The
+      name `trading-vol-regime` was free on PyPI as of 2026-10-10.
 
 ## 2. MCP directory listings
 
