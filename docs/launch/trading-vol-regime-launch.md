@@ -18,17 +18,27 @@ submitted.** Each external step is listed for the owner to do or approve.
 - [x] **Commit identity.** Commits use the GitHub noreply address (set in this repo's
       git config).
 - [x] **Repo visibility.** Public at https://github.com/dineshrm15/signal-platform; CI green.
-- [ ] **PyPI release.** Packaging is ready (`.github/workflows/publish.yml`). Both names
-      (`signal-platform`, `trading-vol-regime`) were free on PyPI as of 2026-10-10.
-      1. pypi.org: create an account and enable 2FA.
-      2. Account → Publishing → "Add a new pending publisher", once per project
-         (`signal-platform` and `trading-vol-regime`): owner `dineshrm15`, repository
-         `signal-platform`, workflow `publish.yml`, environment `pypi`.
-      3. Optional dry run: same on test.pypi.org with environment `testpypi`, then run the
-         Publish workflow manually from the Actions tab.
-      4. Release: `git tag v0.1.0 && git push origin v0.1.0`. The workflow tests, checks
-         the tag matches the version, builds, smoke-tests the wheels, and uploads both.
-      5. Later releases: bump `version` in the package's `pyproject.toml`, commit, tag.
+- [ ] **PyPI release.** `.github/workflows/publish.yml` uploads each package from its
+      own job and GitHub environment; each PyPI project's trusted publisher must name that
+      environment (owner `dineshrm15`, repository `signal-platform`, workflow
+      `publish.yml`):
+
+      | Project | pypi.org environment | test.pypi.org environment |
+      |---------|----------------------|---------------------------|
+      | `signal-platform` | `pypi` | `testpypi` |
+      | `trading-vol-regime` | `pypi-trading-vol-regime` | `testpypi-trading-vol-regime` |
+
+      Status (2026-10-10): `signal-platform` 0.1.0 is published (created by tag
+      `v0.1.0`). `trading-vol-regime` failed to publish under `v0.1.0` because both
+      projects shared environment `pypi`, and PyPI lets one workflow identity create only
+      one new project. Fixed by the per-package environments above; the next release is
+      `v0.1.1`.
+
+      Release: bump `version` in the package's `pyproject.toml`, commit, push, then
+      `git tag vX.Y.Z && git push origin vX.Y.Z` (the tag must match
+      `trading-vol-regime`'s version). The workflow tests, builds, smoke-tests the wheels,
+      uploads `signal-platform` first, then `trading-vol-regime`. Already-published files
+      are skipped, so unchanged packages are safe to include.
 
 ## 2. MCP directory listings
 

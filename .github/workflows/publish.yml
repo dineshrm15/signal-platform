@@ -1,9 +1,19 @@
 name: Publish
 
 # Tag push (v1.2.3) -> PyPI. Manual run -> TestPyPI (dry run).
-# Uses PyPI trusted publishing (OIDC): no API tokens are stored anywhere. Each project
-# needs a trusted publisher on pypi.org / test.pypi.org pointing at this workflow, with
-# environment "pypi" / "testpypi".
+#
+# Uses PyPI trusted publishing (OIDC): no API tokens are stored anywhere. Each package
+# uploads from its own job with its own GitHub environment, and each PyPI project's
+# trusted publisher names that environment:
+#
+#   package              pypi.org environment       test.pypi.org environment
+#   signal-platform      pypi                       testpypi
+#   trading-vol-regime   pypi-trading-vol-regime    testpypi-trading-vol-regime
+#
+# One environment per package is required, not cosmetic: PyPI maps a workflow identity
+# (owner/repo/workflow/environment) to one publisher, so a shared identity can create
+# only the first new project; uploads for the next new project are rejected with
+# "Non-user identities cannot create new projects".
 on:
   push:
     tags: ["v*"]
@@ -56,12 +66,37 @@ jobs:
           name: dist
           path: dist/
 
-  pypi:
+  # Dependencies upload first, so a published trading-vol-regime never requires a
+  # signal-platform version that failed to upload.
+  pypi-signal-platform:
     if: github.event_name == 'push'
     needs: build
     runs-on: ubuntu-latest
     environment:
       name: pypi
+      url: https://pypi.org/project/signal-platform/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - name: Select signal-platform files
+        run: mkdir upload && mv dist/signal_platform-* upload/ && ls upload
+      # skip-existing: a release that only bumps one package re-uploads the other's
+      # unchanged version, which PyPI would otherwise reject.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: upload/
+          skip-existing: true
+
+  pypi-trading-vol-regime:
+    if: github.event_name == 'push'
+    needs: [build, pypi-signal-platform]
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi-trading-vol-regime
       url: https://pypi.org/project/trading-vol-regime/
     permissions:
       id-token: write
@@ -70,19 +105,27 @@ jobs:
         with:
           name: dist
           path: dist/
-      # skip-existing: a release that only bumps one package re-uploads the other's
-      # unchanged version, which PyPI would otherwise reject.
+      - name: Select trading-vol-regime files
+        run: mkdir upload && mv dist/trading_vol_regime-* upload/ && ls upload
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
+          packages-dir: upload/
           skip-existing: true
 
   testpypi:
     if: github.event_name == 'workflow_dispatch'
     needs: build
     runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - files: signal_platform
+            environment: testpypi
+          - files: trading_vol_regime
+            environment: testpypi-trading-vol-regime
     environment:
-      name: testpypi
-      url: https://test.pypi.org/project/trading-vol-regime/
+      name: ${{ matrix.environment }}
     permissions:
       id-token: write
     steps:
@@ -90,7 +133,10 @@ jobs:
         with:
           name: dist
           path: dist/
+      - name: Select ${{ matrix.files }} files
+        run: mkdir upload && mv dist/${{ matrix.files }}-* upload/ && ls upload
       - uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
+          packages-dir: upload/
           skip-existing: true
