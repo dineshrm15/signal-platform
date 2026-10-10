@@ -18,7 +18,9 @@ submitted.** Each external step is listed for the owner to do or approve.
 - [x] **Commit identity.** Commits use the GitHub noreply address (set in this repo's
       git config).
 - [x] **Repo visibility.** Public at https://github.com/dineshrm15/signal-platform; CI green.
-- [ ] **PyPI release.** `.github/workflows/publish.yml` uploads each package from its
+- [x] **PyPI release.** Published 2026-10-10: `signal-platform` 0.1.0 and
+      `trading-vol-regime` 0.1.1 (https://pypi.org/project/trading-vol-regime/).
+      `.github/workflows/publish.yml` uploads each package from its
       own job and GitHub environment; each PyPI project's trusted publisher must name that
       environment (owner `dineshrm15`, repository `signal-platform`, workflow
       `publish.yml`):
