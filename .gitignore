@@ -18,3 +18,6 @@ data/
 .DS_Store
 .idea/
 .vscode/
+
+# Unpublished planning specs (kept local)
+docs/private/
