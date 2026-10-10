@@ -10,7 +10,7 @@ from typing import Any
 
 import httpx
 
-from vix_regime.models import IndexQuote
+from trading_vol_regime.models import IndexQuote
 
 INDEX_SYMBOLS = ["VIX", "VIX9D", "VIX3M", "VIX6M", "VIX1Y", "VVIX", "SKEW"]
 

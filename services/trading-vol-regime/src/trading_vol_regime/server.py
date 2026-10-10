@@ -4,8 +4,8 @@ Platform rule (docs/00-platform-architecture.md): the server never computes sign
 the request path — the pipeline loop is the only snapshot writer. Subscription tools
 write only to the subscription store.
 
-Run:  python -m vix_regime.server            (stdio, for local MCP clients)
-      python -m vix_regime.server --http     (streamable HTTP on :8000)
+Run:  python -m trading_vol_regime.server            (stdio, for local MCP clients)
+      python -m trading_vol_regime.server --http     (streamable HTTP on :8000)
 """
 
 from __future__ import annotations
@@ -18,8 +18,8 @@ from fastmcp import FastMCP
 from signal_platform import SnapshotStore, SqliteSnapshotStore, envelope
 from signal_platform.push import InvalidTarget, SqliteSubscriptionStore, SubscriptionStore
 
-from vix_regime.alerts import TriggerSpec, create_subscription
-from vix_regime.config import (
+from trading_vol_regime.alerts import TriggerSpec, create_subscription
+from trading_vol_regime.config import (
     ATTRIBUTION,
     DISCLAIMER,
     SERVICE_NAME,
@@ -27,10 +27,10 @@ from vix_regime.config import (
     db_path,
     push_client,
 )
-from vix_regime.pipeline import KIND_SNAPSHOT, KIND_TRANSITION
+from trading_vol_regime.pipeline import KIND_SNAPSHOT, KIND_TRANSITION
 
 mcp = FastMCP(
-    name="vol-regime",
+    name="trading-vol-regime",
     instructions=(
         "Volatility regime intelligence derived from Cboe public data (15-min delayed). "
         "Call get_vol_regime first for the headline state; use get_term_structure for "
@@ -75,7 +75,7 @@ def set_subscriptions_enabled(enabled: bool) -> None:
 
 _NO_DATA = {
     "error": "no_snapshot_available",
-    "detail": "No snapshot in store yet. Run `vix-regime backfill && vix-regime snapshot`.",
+    "detail": "No snapshot in store yet. Run `trading-vol-regime backfill && trading-vol-regime snapshot`.",
 }
 
 
@@ -236,7 +236,7 @@ def unsubscribe(subscription_id: str) -> dict[str, Any]:
 def main() -> None:
     import argparse
 
-    parser = argparse.ArgumentParser(prog="vix-regime-server")
+    parser = argparse.ArgumentParser(prog="trading-vol-regime-server")
     parser.add_argument("--http", action="store_true", help="serve streamable HTTP")
     parser.add_argument("--host", default="127.0.0.1")
     parser.add_argument("--port", type=int, default=8000)

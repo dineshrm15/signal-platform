@@ -13,7 +13,7 @@ from typing import Any
 
 import httpx
 
-from vix_regime.models import FuturesContract, FuturesCurve
+from trading_vol_regime.models import FuturesContract, FuturesCurve
 
 _FUTURES_URL = (
     "https://www.cboe.com/us/futures/api/get_quotes_combined/"

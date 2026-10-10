@@ -7,12 +7,12 @@ import respx
 from fastmcp import Client
 from signal_platform import SqliteSnapshotStore
 from signal_platform.push import SqliteSubscriptionStore
-from vix_regime.calc.regime import RegimeInputs, build_narrative, classify
-from vix_regime.calc.term_structure import build_cash_term_structure
-from vix_regime.config import SERVICE_NAME
-from vix_regime.models import IndexQuote, Snapshot
-from vix_regime.pipeline import KIND_SNAPSHOT, KIND_TRANSITION
-from vix_regime.server import mcp, set_store, set_subscriptions_enabled
+from trading_vol_regime.calc.regime import RegimeInputs, build_narrative, classify
+from trading_vol_regime.calc.term_structure import build_cash_term_structure
+from trading_vol_regime.config import SERVICE_NAME
+from trading_vol_regime.models import IndexQuote, Snapshot
+from trading_vol_regime.pipeline import KIND_SNAPSHOT, KIND_TRANSITION
+from trading_vol_regime.server import mcp, set_store, set_subscriptions_enabled
 
 # Relative to now: transition lookback windows are measured from the current time.
 AS_OF = datetime.now(UTC).replace(microsecond=0) - timedelta(minutes=10)

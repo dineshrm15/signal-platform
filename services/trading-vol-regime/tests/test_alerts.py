@@ -5,13 +5,13 @@ import pytest
 import respx
 from pydantic import ValidationError
 from signal_platform.push import InvalidTarget, SqliteSubscriptionStore
-from vix_regime.alerts import (
+from trading_vol_regime.alerts import (
     TriggerSpec,
     create_subscription,
     notifications_for,
     run_alerts,
 )
-from vix_regime.config import SERVICE_NAME
+from trading_vol_regime.config import SERVICE_NAME
 
 
 def _snap(

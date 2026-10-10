@@ -4,10 +4,14 @@ from pathlib import Path
 import httpx
 import pytest
 import respx
-from vix_regime.config import data_client, push_client
-from vix_regime.ingest.cboe_futures import parse_futures_curve
-from vix_regime.ingest.cboe_indices import INDEX_SYMBOLS, fetch_index_quotes, parse_index_quote
-from vix_regime.ingest.history import parse_history_csv
+from trading_vol_regime.config import data_client, push_client
+from trading_vol_regime.ingest.cboe_futures import parse_futures_curve
+from trading_vol_regime.ingest.cboe_indices import (
+    INDEX_SYMBOLS,
+    fetch_index_quotes,
+    parse_index_quote,
+)
+from trading_vol_regime.ingest.history import parse_history_csv
 
 FIXTURES = Path(__file__).parent / "fixtures"
 

@@ -10,17 +10,17 @@ from typing import Any
 import httpx
 from signal_platform import SnapshotStore
 
-from vix_regime.calc.percentiles import percentile_context
-from vix_regime.calc.regime import RegimeInputs, build_narrative, classify
-from vix_regime.calc.term_structure import (
+from trading_vol_regime.calc.percentiles import percentile_context
+from trading_vol_regime.calc.regime import RegimeInputs, build_narrative, classify
+from trading_vol_regime.calc.term_structure import (
     build_cash_term_structure,
     build_futures_term_structure,
 )
-from vix_regime.config import SERVICE_NAME
-from vix_regime.ingest.cboe_futures import fetch_futures_curve
-from vix_regime.ingest.cboe_indices import INDEX_SYMBOLS, fetch_index_quotes
-from vix_regime.ingest.history import fetch_history
-from vix_regime.models import Snapshot
+from trading_vol_regime.config import SERVICE_NAME
+from trading_vol_regime.ingest.cboe_futures import fetch_futures_curve
+from trading_vol_regime.ingest.cboe_indices import INDEX_SYMBOLS, fetch_index_quotes
+from trading_vol_regime.ingest.history import fetch_history
+from trading_vol_regime.models import Snapshot
 
 log = logging.getLogger(__name__)
 

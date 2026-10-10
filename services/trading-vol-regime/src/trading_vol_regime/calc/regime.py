@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 
-from vix_regime.models import (
+from trading_vol_regime.models import (
     CashTermStructure,
     FuturesTermStructure,
     Regime,

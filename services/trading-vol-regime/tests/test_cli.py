@@ -2,8 +2,8 @@ import argparse
 from datetime import UTC, date, datetime, timedelta
 from zoneinfo import ZoneInfo
 
-from vix_regime.cli import _parse_triggers, backfill_due, market_is_open
-from vix_regime.schedule import LABEL, build_plist
+from trading_vol_regime.cli import _parse_triggers, backfill_due, market_is_open
+from trading_vol_regime.schedule import LABEL, build_plist
 
 ET = ZoneInfo("America/New_York")
 
@@ -43,9 +43,9 @@ def test_backfill_at_most_once_per_day_even_when_stale():
 def test_plist_runs_loop_with_keepalive():
     plist = build_plist("/venv/bin/python", db="/data/v.db")
     assert plist["Label"] == LABEL
-    assert plist["ProgramArguments"] == ["/venv/bin/python", "-m", "vix_regime.cli", "run"]
+    assert plist["ProgramArguments"] == ["/venv/bin/python", "-m", "trading_vol_regime.cli", "run"]
     assert plist["KeepAlive"] is True
-    assert plist["EnvironmentVariables"]["VIX_REGIME_DB"] == "/data/v.db"
+    assert plist["EnvironmentVariables"]["TRADING_VOL_REGIME_DB"] == "/data/v.db"
 
 
 def _args(**kw):

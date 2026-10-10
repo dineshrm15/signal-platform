@@ -22,8 +22,8 @@ from signal_platform.push import (
     validate_target,
 )
 
-from vix_regime.config import SERVICE_NAME
-from vix_regime.models import Regime, SlopeState
+from trading_vol_regime.config import SERVICE_NAME
+from trading_vol_regime.models import Regime, SlopeState
 
 INVERTED_STATES = {SlopeState.BACKWARDATION.value, SlopeState.INVERTED_CRISIS.value}
 PERCENTILE_COOLDOWN_MIN = 6 * 60

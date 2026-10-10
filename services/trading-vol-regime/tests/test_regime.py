@@ -1,6 +1,6 @@
-from vix_regime.calc.regime import RegimeInputs, build_narrative, classify
-from vix_regime.calc.term_structure import build_cash_term_structure
-from vix_regime.models import IndexQuote, Regime
+from trading_vol_regime.calc.regime import RegimeInputs, build_narrative, classify
+from trading_vol_regime.calc.term_structure import build_cash_term_structure
+from trading_vol_regime.models import IndexQuote, Regime
 
 
 def _quote(symbol: str, price: float) -> IndexQuote:

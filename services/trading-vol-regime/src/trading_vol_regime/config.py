@@ -10,7 +10,7 @@ import httpx
 
 log = logging.getLogger(__name__)
 
-SERVICE_NAME = "vix-regime"
+SERVICE_NAME = "trading-vol-regime"
 
 ATTRIBUTION = (
     "Index and futures data from Cboe public delayed feeds (15-min delayed). "
@@ -28,10 +28,10 @@ DISCLAIMER = (
 def allow_private_targets() -> bool:
     """Local-dev escape hatch: permit http:// and private-network push targets
     (e.g. a webhook receiver on localhost). Never enable on a hosted deployment."""
-    return os.environ.get("VIX_REGIME_ALLOW_PRIVATE_TARGETS") == "1"
+    return os.environ.get("TRADING_VOL_REGIME_ALLOW_PRIVATE_TARGETS") == "1"
 
 
-_USER_AGENT = {"User-Agent": "vix-regime/0.1"}
+_USER_AGENT = {"User-Agent": "trading-vol-regime/0.1"}
 
 
 def _warn_on_redirect(response: httpx.Response) -> None:
@@ -61,9 +61,9 @@ def push_client() -> httpx.Client:
 
 
 def db_path() -> Path:
-    """Snapshot DB location. Override with VIX_REGIME_DB; default lives under the
+    """Snapshot DB location. Override with TRADING_VOL_REGIME_DB; default lives under the
     user's home so the MCP server finds the same DB regardless of spawn cwd."""
-    env = os.environ.get("VIX_REGIME_DB")
+    env = os.environ.get("TRADING_VOL_REGIME_DB")
     if env:
         return Path(env).expanduser()
-    return Path.home() / ".vix-regime" / "vix_regime.db"
+    return Path.home() / ".trading-vol-regime" / "trading_vol_regime.db"

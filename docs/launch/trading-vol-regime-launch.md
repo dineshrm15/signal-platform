@@ -1,4 +1,4 @@
-# vol-regime — Launch Kit (W3)
+# trading-vol-regime — Launch Kit (W3)
 
 Drafts and checklists for publishing service 01. **Nothing here has been posted or
 submitted.** Each external step is listed for the owner to do or approve.
@@ -9,21 +9,20 @@ submitted.** Each external step is listed for the owner to do or approve.
       redistributing them through an API, and a paid Pro tier is clearly redistribution.
       Read Cboe's delayed-data and market-data policies before turning on paid tiers. The
       free tier is lower risk but still worth confirming. Until then, launch free-only.
-- [ ] **Public naming.** The platform spec says no "VIX" in the brand name. The MCP server
-      is already called `vol-regime`, but the Python package, CLI, and folder are
-      `vix-regime`. Rename to `vol-regime` before the first public push or PyPI release;
-      renaming after people install it is much more expensive.
+- [x] **Public naming.** Renamed from `vix-regime` to `trading-vol-regime` (package, CLI,
+      module, folder, MCP server name) before any public release, per the spec's rule of
+      no "VIX" in the brand name. Check that the name is free on PyPI before publishing there.
 - [ ] **License.** No LICENSE file yet. Choose one (MIT or Apache-2.0 are typical for a
       portfolio/starter-kit repo) before the repo goes public.
 - [ ] **Repo visibility.** Create the GitHub repo (public), push, confirm CI is green.
-- [ ] **PyPI package (optional, needed for some directories).** `uvx vol-regime-server`
+- [ ] **PyPI package (optional, needed for some directories).** `uvx trading-vol-regime-server`
       style install makes "one-line connect" real for people without the monorepo.
 
 ## 2. MCP directory listings
 
 Submit after the repo is public. Listing copy (reuse across directories):
 
-**Name:** vol-regime
+**Name:** trading-vol-regime
 **One-liner:** Volatility regime for agents: one tool call returns the current vol
 regime (calm carry → capitulation) from Cboe's VIX term structure and VX futures curve.
 **Description:**

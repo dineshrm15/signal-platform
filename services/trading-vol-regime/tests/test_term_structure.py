@@ -1,12 +1,12 @@
 from datetime import date
 
-from vix_regime.calc.term_structure import (
+from trading_vol_regime.calc.term_structure import (
     build_cash_term_structure,
     build_futures_term_structure,
     classify_cash_slope,
     classify_futures_slope,
 )
-from vix_regime.models import FuturesContract, FuturesCurve, IndexQuote, SlopeState
+from trading_vol_regime.models import FuturesContract, FuturesCurve, IndexQuote, SlopeState
 
 
 def _quote(symbol: str, price: float) -> IndexQuote:

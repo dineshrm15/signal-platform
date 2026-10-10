@@ -1,4 +1,4 @@
-"""CLI entry point. Run `vix-regime --help` for commands."""
+"""CLI entry point. Run `trading-vol-regime --help` for commands."""
 
 from __future__ import annotations
 
@@ -14,16 +14,16 @@ import httpx
 from signal_platform import SqliteSnapshotStore
 from signal_platform.push import InvalidTarget, SqliteSubscriptionStore
 
-from vix_regime import schedule
-from vix_regime.alerts import TriggerSpec, create_subscription, run_alerts
-from vix_regime.config import (
+from trading_vol_regime import schedule
+from trading_vol_regime.alerts import TriggerSpec, create_subscription, run_alerts
+from trading_vol_regime.config import (
     SERVICE_NAME,
     allow_private_targets,
     data_client,
     db_path,
     push_client,
 )
-from vix_regime.pipeline import latest_daily_as_of, run_backfill, run_snapshot
+from trading_vol_regime.pipeline import latest_daily_as_of, run_backfill, run_snapshot
 
 log = logging.getLogger(__name__)
 
@@ -164,7 +164,7 @@ def cmd_subscriptions(subs: SqliteSubscriptionStore) -> None:
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(prog="vix-regime")
+    parser = argparse.ArgumentParser(prog="trading-vol-regime")
     parser.add_argument("--db", default=None, help="snapshot DB path (default: config)")
     sub = parser.add_subparsers(dest="command", required=True)
     sub.add_parser("backfill", help="load daily history for percentile context")

@@ -10,7 +10,7 @@ architecture spec.
 
 | Service | Status | Description |
 |---------|--------|-------------|
-| [vix-regime](services/vix-regime/) | In development | Volatility regime intelligence from CBOE public data ([spec](docs/01-vix-regime-server.md)) |
+| [trading-vol-regime](services/trading-vol-regime/) | In development | Volatility regime intelligence from CBOE public data ([spec](docs/01-trading-vol-regime-server.md)) |
 | integration-platform-watcher | Planned | Enterprise integration ops (B2B) |
 | grid-energy-intelligence | Planned | Home energy and grid resilience |
 | product-recall-agent | Planned | Household product recall matching |

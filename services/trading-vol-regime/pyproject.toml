@@ -1,5 +1,5 @@
 [project]
-name = "vix-regime"
+name = "trading-vol-regime"
 version = "0.1.0"
 description = "Volatility regime intelligence MCP server (CBOE public data, 15-min delayed)"
 requires-python = ">=3.12"
@@ -11,11 +11,11 @@ dependencies = [
 ]
 
 [project.scripts]
-vix-regime = "vix_regime.cli:main"
+trading-vol-regime = "trading_vol_regime.cli:main"
 
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
-packages = ["src/vix_regime"]
+packages = ["src/trading_vol_regime"]

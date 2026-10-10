@@ -2,8 +2,8 @@
 
 This document specifies, exactly, how the service classifies the volatility regime.
 Every threshold below appears verbatim in the code
-([term_structure.py](src/vix_regime/calc/term_structure.py),
-[regime.py](src/vix_regime/calc/regime.py)) — the two are kept in sync by review and by
+([term_structure.py](src/trading_vol_regime/calc/term_structure.py),
+[regime.py](src/trading_vol_regime/calc/regime.py)) — the two are kept in sync by review and by
 tests. Nothing here is a black box, an ML model, or an LLM opinion: the classifier is a
 deterministic, ordered rule list over public CBOE data (15-min delayed).
 
@@ -104,7 +104,7 @@ via the `get_regime_transitions` tool.
 ## Alerts
 
 Each subscriber chooses triggers; every trigger compares the previous snapshot with the
-new one ([alerts.py](src/vix_regime/alerts.py)). Nothing is sent on the first snapshot.
+new one ([alerts.py](src/trading_vol_regime/alerts.py)). Nothing is sent on the first snapshot.
 
 | Trigger | Fires when | Priority | Cooldown |
 |---------|------------|----------|----------|

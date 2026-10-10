@@ -5,7 +5,7 @@ Thresholds are documented 1:1 in METHODOLOGY.md — change both together.
 
 from __future__ import annotations
 
-from vix_regime.models import (
+from trading_vol_regime.models import (
     CashTermStructure,
     FuturesCurve,
     FuturesTermStructure,

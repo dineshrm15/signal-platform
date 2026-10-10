@@ -1,4 +1,4 @@
-# vol-regime — Volatility Regime MCP Server
+# trading-vol-regime — Volatility Regime MCP Server
 
 One tool call answers: **"what volatility regime are we in?"**
 
@@ -29,29 +29,29 @@ Every data payload carries `as_of`, `data_freshness`, `attribution`, and `discla
 uv sync --all-packages
 
 # load history (percentile context), then take a snapshot
-uv run vix-regime backfill
-uv run vix-regime snapshot
+uv run trading-vol-regime backfill
+uv run trading-vol-regime snapshot
 ```
 
 ## Keep it running
 
-`vix-regime run` loops on the spec's cadence: every 15 min during market hours, a 30-min
+`trading-vol-regime run` loops on the spec's cadence: every 15 min during market hours, a 30-min
 heartbeat off-hours, and a history refresh each weekday evening (or immediately if
 history is more than 4 days old).
 
 On macOS, install it as a launchd agent so it starts at login and restarts on crash:
 
 ```bash
-uv run vix-regime schedule install     # status | uninstall
-tail -f ~/.vix-regime/logs/run.log
+uv run trading-vol-regime schedule install     # status | uninstall
+tail -f ~/.trading-vol-regime/logs/run.log
 ```
 
-The agent runs from a copy of the code in `~/.vix-regime/runtime`, not from the checkout:
+The agent runs from a copy of the code in `~/.trading-vol-regime/runtime`, not from the checkout:
 macOS blocks background jobs from reading `~/Documents`, `~/Desktop`, and `~/Downloads`
 without a privacy grant. **Re-run `schedule install` after changing the code** so the
 agent picks it up.
 
-Elsewhere, run `uv run vix-regime run` under systemd, supervisord, or a container.
+Elsewhere, run `uv run trading-vol-regime run` under systemd, supervisord, or a container.
 
 ## Push alerts
 
@@ -63,9 +63,9 @@ inversion / re-normalization, and percentile crossings — rules and cooldowns a
 hard-to-guess topic name, then:
 
 ```bash
-uv run vix-regime subscribe ntfy my-vol-alerts-x7k2 --regime --curve --percentile VVIX:0.9
-uv run vix-regime subscriptions
-uv run vix-regime unsubscribe <subscription_id>
+uv run trading-vol-regime subscribe ntfy my-vol-alerts-x7k2 --regime --curve --percentile VVIX:0.9
+uv run trading-vol-regime subscriptions
+uv run trading-vol-regime unsubscribe <subscription_id>
 ```
 
 ntfy.sh topics are public: anyone who knows the name can read them, so use a random name
@@ -81,7 +81,7 @@ instance can't be used as an open relay.
 **Claude Code**
 
 ```bash
-claude mcp add vol-regime -- uv --directory /path/to/agents-mcp run python -m vix_regime.server
+claude mcp add trading-vol-regime -- uv --directory /path/to/agents-mcp run python -m trading_vol_regime.server
 ```
 
 **Claude Desktop / Cursor / generic stdio client** — add to your MCP config:
@@ -89,9 +89,9 @@ claude mcp add vol-regime -- uv --directory /path/to/agents-mcp run python -m vi
 ```json
 {
   "mcpServers": {
-    "vol-regime": {
+    "trading-vol-regime": {
       "command": "uv",
-      "args": ["--directory", "/path/to/agents-mcp", "run", "python", "-m", "vix_regime.server"]
+      "args": ["--directory", "/path/to/agents-mcp", "run", "python", "-m", "trading_vol_regime.server"]
     }
   }
 }
@@ -100,19 +100,19 @@ claude mcp add vol-regime -- uv --directory /path/to/agents-mcp run python -m vi
 **Streamable HTTP**
 
 ```bash
-uv run python -m vix_regime.server --http --port 8000
+uv run python -m trading_vol_regime.server --http --port 8000
 # endpoint: http://127.0.0.1:8000/mcp
 ```
 
 ## Architecture
 
-The server never computes on the request path: the `vix-regime` CLI pipeline is the only
+The server never computes on the request path: the `trading-vol-regime` CLI pipeline is the only
 snapshot writer (ingest → derive → classify → SQLite snapshot → alert fan-out), and MCP
 data tools read the latest snapshot. Storage sits behind a small protocol so the hosted deployment can swap SQLite
 for DynamoDB without touching calc code. See
 [docs/00-platform-architecture.md](../../docs/00-platform-architecture.md).
 
-DB location: `~/.vix-regime/vix_regime.db` (override with `VIX_REGIME_DB`).
+DB location: `~/.trading-vol-regime/trading_vol_regime.db` (override with `TRADING_VOL_REGIME_DB`).
 
 ## Development
 
@@ -122,5 +122,5 @@ uv run ruff check .           # lint
 uv run ruff format --check .  # formatting (enforced in CI)
 ```
 
-For local webhook testing, `VIX_REGIME_ALLOW_PRIVATE_TARGETS=1` permits `http://` and
+For local webhook testing, `TRADING_VOL_REGIME_ALLOW_PRIVATE_TARGETS=1` permits `http://` and
 localhost targets. Never set it on a hosted deployment.

@@ -1,6 +1,6 @@
 """Local scheduling via a macOS launchd user agent.
 
-The agent keeps `vix-regime run` alive: launchd restarts it on crash and starts it at
+The agent keeps `trading-vol-regime run` alive: launchd restarts it on crash and starts it at
 login. The loop itself owns cadence (15-min market hours, 30-min off hours, nightly
 history refresh), so launchd only has to keep one process running.
 
@@ -16,7 +16,7 @@ import subprocess
 import time
 from pathlib import Path
 
-LABEL = "com.signalplatform.vix-regime"
+LABEL = "com.signalplatform.trading-vol-regime"
 
 
 def plist_path() -> Path:
@@ -24,17 +24,17 @@ def plist_path() -> Path:
 
 
 def log_path() -> Path:
-    return Path.home() / ".vix-regime" / "logs" / "run.log"
+    return Path.home() / ".trading-vol-regime" / "logs" / "run.log"
 
 
 def build_plist(python: str, db: str | None = None) -> dict:
     env = {"PYTHONUNBUFFERED": "1"}
     if db:
-        env["VIX_REGIME_DB"] = db
+        env["TRADING_VOL_REGIME_DB"] = db
     log = str(log_path())
     return {
         "Label": LABEL,
-        "ProgramArguments": [python, "-m", "vix_regime.cli", "run"],
+        "ProgramArguments": [python, "-m", "trading_vol_regime.cli", "run"],
         "EnvironmentVariables": env,
         "RunAtLoad": True,
         "KeepAlive": True,
@@ -50,11 +50,11 @@ def _domain() -> str:
 
 
 def runtime_dir() -> Path:
-    return Path.home() / ".vix-regime" / "runtime"
+    return Path.home() / ".trading-vol-regime" / "runtime"
 
 
 def _repo_root() -> Path:
-    # services/vix-regime/src/vix_regime/schedule.py -> repo root
+    # services/trading-vol-regime/src/trading_vol_regime/schedule.py -> repo root
     root = Path(__file__).resolve().parents[4]
     if not (root / "libs" / "signal-platform").is_dir():
         raise RuntimeError(
@@ -64,7 +64,7 @@ def _repo_root() -> Path:
 
 
 def build_runtime() -> Path:
-    """Install a non-editable copy of the service into ~/.vix-regime/runtime.
+    """Install a non-editable copy of the service into ~/.trading-vol-regime/runtime.
 
     macOS privacy protection (TCC) blocks launchd agents from reading ~/Documents,
     ~/Desktop, and ~/Downloads without an interactive grant, so the agent cannot run from
@@ -73,7 +73,7 @@ def build_runtime() -> Path:
     """
     uv = os.environ.get("UV") or shutil.which("uv")
     if not uv:
-        raise RuntimeError("uv not found; install uv or run via `uv run vix-regime ...`")
+        raise RuntimeError("uv not found; install uv or run via `uv run trading-vol-regime ...`")
     root = _repo_root()
     runtime = runtime_dir()
     if runtime.exists():
@@ -90,7 +90,7 @@ def build_runtime() -> Path:
             "--python",
             str(python),
             str(root / "libs" / "signal-platform"),
-            str(root / "services" / "vix-regime"),
+            str(root / "services" / "trading-vol-regime"),
         ],
         check=True,
     )
@@ -105,7 +105,7 @@ def install(db: str | None = None) -> Path:
         uninstall()
     python = build_runtime()
     with path.open("wb") as fh:
-        plistlib.dump(build_plist(str(python), db or os.environ.get("VIX_REGIME_DB")), fh)
+        plistlib.dump(build_plist(str(python), db or os.environ.get("TRADING_VOL_REGIME_DB")), fh)
     subprocess.run(["launchctl", "bootstrap", _domain(), str(path)], check=True)
     return path
 
