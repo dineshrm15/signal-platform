@@ -12,8 +12,11 @@ submitted.** Each external step is listed for the owner to do or approve.
 - [x] **Public naming.** Renamed from `vix-regime` to `trading-vol-regime` (package, CLI,
       module, folder, MCP server name) before any public release, per the spec's rule of
       no "VIX" in the brand name. Check that the name is free on PyPI before publishing there.
-- [ ] **License.** No LICENSE file yet. Choose one (MIT or Apache-2.0 are typical for a
-      portfolio/starter-kit repo) before the repo goes public.
+- [x] **License.** MIT (root `LICENSE`; `license = "MIT"` in each package). When
+      publishing a package to PyPI, copy `LICENSE` into that package folder so the wheel
+      includes it.
+- [ ] **Commit identity.** Set `git config user.email` to your GitHub noreply address
+      before pushing, so commits link to your account instead of a machine hostname.
 - [ ] **Repo visibility.** Create the GitHub repo (public), push, confirm CI is green.
 - [ ] **PyPI package (optional, needed for some directories).** `uvx trading-vol-regime-server`
       style install makes "one-line connect" real for people without the monorepo.

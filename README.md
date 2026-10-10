@@ -26,6 +26,10 @@ architecture spec.
 Requires [uv](https://docs.astral.sh/uv/).
 
 ```bash
-uv sync          # create venv, install all workspace packages
-uv run pytest    # run all tests
+uv sync --all-packages   # create venv, install all workspace packages
+uv run pytest            # run all tests
 ```
+
+## License
+
+[MIT](LICENSE)

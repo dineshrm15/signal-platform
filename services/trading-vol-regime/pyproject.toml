@@ -2,6 +2,7 @@
 name = "trading-vol-regime"
 version = "0.1.0"
 description = "Volatility regime intelligence MCP server (CBOE public data, 15-min delayed)"
+license = "MIT"
 requires-python = ">=3.12"
 dependencies = [
     "signal-platform",
