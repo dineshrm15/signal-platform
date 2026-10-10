@@ -1,18 +1,39 @@
 [project]
 name = "trading-vol-regime"
 version = "0.1.0"
-description = "Volatility regime intelligence MCP server (CBOE public data, 15-min delayed)"
+description = "MCP server that classifies the market volatility regime from Cboe public data (15-min delayed)"
+readme = "README.md"
 license = "MIT"
+authors = [{ name = "Dinesh Ramalingam" }]
 requires-python = ">=3.12"
-dependencies = [
-    "signal-platform",
-    "fastmcp>=2.0",
-    "httpx>=0.27",
-    "pydantic>=2.7",
+keywords = ["mcp", "volatility", "vix", "options", "trading", "ai-agents", "market-regime"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Financial and Insurance Industry",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Office/Business :: Financial :: Investment",
 ]
+# Minimums are exercised in CI (scripts/floor_pins.py). httpx and pydantic floors follow
+# fastmcp 3.0's own requirements.
+dependencies = [
+    "signal-platform>=0.1.0,<0.2",
+    "fastmcp>=3.0.0,<4",
+    "httpx>=0.28.1",
+    "pydantic>=2.11.7",
+]
+
+[project.urls]
+Homepage = "https://github.com/dineshrm15/signal-platform/tree/main/services/trading-vol-regime"
+Source = "https://github.com/dineshrm15/signal-platform"
+Methodology = "https://github.com/dineshrm15/signal-platform/blob/main/services/trading-vol-regime/METHODOLOGY.md"
+Issues = "https://github.com/dineshrm15/signal-platform/issues"
 
 [project.scripts]
 trading-vol-regime = "trading_vol_regime.cli:main"
+trading-vol-regime-server = "trading_vol_regime.server:main"
 
 [build-system]
 requires = ["hatchling"]

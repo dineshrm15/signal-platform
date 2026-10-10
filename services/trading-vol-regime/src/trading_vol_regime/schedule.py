@@ -13,6 +13,7 @@ import os
 import plistlib
 import shutil
 import subprocess
+import sys
 import time
 from pathlib import Path
 
@@ -53,28 +54,63 @@ def runtime_dir() -> Path:
     return Path.home() / ".trading-vol-regime" / "runtime"
 
 
-def _repo_root() -> Path:
+# macOS privacy protection (TCC) blocks launchd agents from reading these folders without
+# an interactive grant, so the agent's Python environment must live elsewhere.
+_PROTECTED_DIRS = ("Documents", "Desktop", "Downloads")
+
+
+def _source_checkout() -> Path | None:
     # services/trading-vol-regime/src/trading_vol_regime/schedule.py -> repo root
-    root = Path(__file__).resolve().parents[4]
-    if not (root / "libs" / "signal-platform").is_dir():
+    parents = Path(__file__).resolve().parents
+    root = parents[4] if len(parents) > 4 else None
+    if root is not None and (root / "libs" / "signal-platform").is_dir():
+        return root
+    return None
+
+
+def check_installed_env(prefix: Path, home: Path) -> None:
+    """Raise if an installed (non-checkout) environment can't host a long-lived agent."""
+    if any(part.startswith("archive-v") for part in prefix.parts):
         raise RuntimeError(
-            f"schedule install must run from a source checkout (looked for libs/ under {root})"
+            "this looks like a temporary uvx environment, which uv may delete. "
+            "Install persistently first: `uv tool install trading-vol-regime`, "
+            "then run `trading-vol-regime schedule install`."
         )
-    return root
+    try:
+        top = prefix.relative_to(home).parts[0]
+    except (ValueError, IndexError):
+        return
+    if top in _PROTECTED_DIRS:
+        raise RuntimeError(
+            f"this environment is under ~/{top}, which macOS blocks background jobs from "
+            "reading. Install with `uv tool install trading-vol-regime` (or into a venv "
+            "outside ~/Documents, ~/Desktop, ~/Downloads) and run schedule install from there."
+        )
 
 
-def build_runtime() -> Path:
-    """Install a non-editable copy of the service into ~/.trading-vol-regime/runtime.
+def runtime_python() -> Path:
+    """The interpreter the launchd agent will run.
 
-    macOS privacy protection (TCC) blocks launchd agents from reading ~/Documents,
-    ~/Desktop, and ~/Downloads without an interactive grant, so the agent cannot run from
-    a checkout or editable venv in those folders. A copied runtime avoids granting the
-    Python binary access to the whole folder. Re-run `schedule install` after code changes.
+    From a source checkout: a copied runtime in ~/.trading-vol-regime/runtime, since a
+    checkout usually lives in ~/Documents. From a PyPI install: the installed environment
+    itself, after checking that launchd can read it.
+    """
+    root = _source_checkout()
+    if root is not None:
+        return build_runtime(root)
+    check_installed_env(Path(sys.prefix), Path.home())
+    return Path(sys.executable)
+
+
+def build_runtime(root: Path) -> Path:
+    """Install a non-editable copy of the checkout into ~/.trading-vol-regime/runtime.
+
+    A copied runtime avoids granting the Python binary access to a whole protected
+    folder. Re-run `schedule install` after code changes.
     """
     uv = os.environ.get("UV") or shutil.which("uv")
     if not uv:
         raise RuntimeError("uv not found; install uv or run via `uv run trading-vol-regime ...`")
-    root = _repo_root()
     runtime = runtime_dir()
     if runtime.exists():
         shutil.rmtree(runtime)
@@ -103,7 +139,7 @@ def install(db: str | None = None) -> Path:
     log_path().parent.mkdir(parents=True, exist_ok=True)
     if path.exists():
         uninstall()
-    python = build_runtime()
+    python = runtime_python()
     with path.open("wb") as fh:
         plistlib.dump(build_plist(str(python), db or os.environ.get("TRADING_VOL_REGIME_DB")), fh)
     subprocess.run(["launchctl", "bootstrap", _domain(), str(path)], check=True)

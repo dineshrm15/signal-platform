@@ -1225,9 +1225,9 @@ dev = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "pytest", specifier = ">=8.0" },
+    { name = "pytest", specifier = ">=8.2" },
     { name = "pytest-asyncio", specifier = ">=0.24" },
-    { name = "respx", specifier = ">=0.21" },
+    { name = "respx", specifier = ">=0.22" },
     { name = "ruff", specifier = ">=0.6" },
 ]
 
@@ -1270,9 +1270,9 @@ dependencies = [
 
 [package.metadata]
 requires-dist = [
-    { name = "fastmcp", specifier = ">=2.0" },
-    { name = "httpx", specifier = ">=0.27" },
-    { name = "pydantic", specifier = ">=2.7" },
+    { name = "fastmcp", specifier = ">=3.0.0,<4" },
+    { name = "httpx", specifier = ">=0.28.1" },
+    { name = "pydantic", specifier = ">=2.11.7" },
     { name = "signal-platform", editable = "libs/signal-platform" },
 ]
 

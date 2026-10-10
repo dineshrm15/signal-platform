@@ -1,10 +1,27 @@
 [project]
 name = "signal-platform"
 version = "0.1.0"
-description = "Shared platform library for derived-signal MCP services"
+description = "Building blocks for derived-signal MCP services: snapshot store, response envelope, push fan-out"
+readme = "README.md"
 license = "MIT"
+authors = [{ name = "Dinesh Ramalingam" }]
 requires-python = ">=3.12"
+keywords = ["mcp", "ai-agents", "signals", "notifications", "ntfy", "webhooks"]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Developers",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+]
 dependencies = ["httpx>=0.27"]
+
+[project.urls]
+Homepage = "https://github.com/dineshrm15/signal-platform/tree/main/libs/signal-platform"
+Source = "https://github.com/dineshrm15/signal-platform"
+Architecture = "https://github.com/dineshrm15/signal-platform/blob/main/docs/00-platform-architecture.md"
+Issues = "https://github.com/dineshrm15/signal-platform/issues"
 
 [build-system]
 requires = ["hatchling"]

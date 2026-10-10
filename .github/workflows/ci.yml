@@ -31,3 +31,25 @@ jobs:
       # Tests use captured fixtures and mocked HTTP; no network access to Cboe or ntfy.
       - name: Test
         run: uv run pytest -q
+
+  # The lockfile pins the newest versions; PyPI users may resolve the oldest ones the
+  # packages declare. Install exactly those minimums (non-editable, like a user) and test.
+  minimum-versions:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install at declared minimums
+        run: |
+          uv venv /tmp/floors --python 3.12
+          uv run --no-project --python 3.12 python scripts/floor_pins.py > /tmp/floors.txt
+          cat /tmp/floors.txt
+          uv pip install --python /tmp/floors/bin/python \
+            ./libs/signal-platform ./services/trading-vol-regime -r /tmp/floors.txt \
+            "pytest>=8.2" "pytest-asyncio>=0.24" "respx>=0.22"
+
+      - name: Test
+        run: /tmp/floors/bin/python -m pytest -q

@@ -12,9 +12,9 @@ signal-platform = { workspace = true }
 
 [dependency-groups]
 dev = [
-    "pytest>=8.0",
+    "pytest>=8.2",
     "pytest-asyncio>=0.24",
-    "respx>=0.21",
+    "respx>=0.22",  # 0.21 can't mock httpx 0.28
     "ruff>=0.6",
 ]
 

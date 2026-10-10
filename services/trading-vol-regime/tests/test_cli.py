@@ -1,11 +1,39 @@
 import argparse
 from datetime import UTC, date, datetime, timedelta
+from pathlib import Path
 from zoneinfo import ZoneInfo
 
+import pytest
 from trading_vol_regime.cli import _parse_triggers, backfill_due, market_is_open
-from trading_vol_regime.schedule import LABEL, build_plist
+from trading_vol_regime.schedule import LABEL, build_plist, check_installed_env
 
 ET = ZoneInfo("America/New_York")
+HOME = Path("/Users/someone")
+
+
+@pytest.mark.parametrize(
+    "prefix",
+    [
+        HOME / ".local/share/uv/tools/trading-vol-regime",  # uv tool install
+        HOME / ".venvs/vol",
+        Path("/opt/venvs/vol"),
+    ],
+)
+def test_installed_env_allowed(prefix):
+    check_installed_env(prefix, HOME)
+
+
+@pytest.mark.parametrize(
+    "prefix,message",
+    [
+        (HOME / ".cache/uv/archive-v0/abc123", "uvx"),
+        (HOME / "Documents/proj/.venv", "~/Documents"),
+        (HOME / "Desktop/.venv", "~/Desktop"),
+    ],
+)
+def test_installed_env_rejected(prefix, message):
+    with pytest.raises(RuntimeError, match=message):
+        check_installed_env(prefix, HOME)
 
 
 def _et(y, m, d, hh, mm=0):

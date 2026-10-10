@@ -1,0 +1,96 @@
+name: Publish
+
+# Tag push (v1.2.3) -> PyPI. Manual run -> TestPyPI (dry run).
+# Uses PyPI trusted publishing (OIDC): no API tokens are stored anywhere. Each project
+# needs a trusted publisher on pypi.org / test.pypi.org pointing at this workflow, with
+# environment "pypi" / "testpypi".
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Install
+        run: uv sync --all-packages --locked
+
+      - name: Lint, format, test
+        run: |
+          uv run ruff check .
+          uv run ruff format --check .
+          uv run pytest -q
+
+      - name: Tag matches trading-vol-regime version
+        if: github.event_name == 'push'
+        run: |
+          version=$(uv run python -c "import tomllib; print(tomllib.load(open('services/trading-vol-regime/pyproject.toml', 'rb'))['project']['version'])")
+          if [ "v$version" != "$GITHUB_REF_NAME" ]; then
+            echo "::error::tag $GITHUB_REF_NAME does not match package version v$version"
+            exit 1
+          fi
+
+      - name: Build
+        run: uv build --all-packages -o dist
+
+      # Install the built wheels into a clean environment, the way a PyPI user would.
+      - name: Smoke-test wheels
+        run: |
+          uv venv /tmp/smoke --python 3.12
+          uv pip install --python /tmp/smoke/bin/python dist/*.whl
+          /tmp/smoke/bin/trading-vol-regime --help > /dev/null
+          /tmp/smoke/bin/trading-vol-regime-server --help > /dev/null
+          /tmp/smoke/bin/python -c "import trading_vol_regime.server, signal_platform.push"
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dist
+          path: dist/
+
+  pypi:
+    if: github.event_name == 'push'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+      url: https://pypi.org/project/trading-vol-regime/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      # skip-existing: a release that only bumps one package re-uploads the other's
+      # unchanged version, which PyPI would otherwise reject.
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          skip-existing: true
+
+  testpypi:
+    if: github.event_name == 'workflow_dispatch'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: testpypi
+      url: https://test.pypi.org/project/trading-vol-regime/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          repository-url: https://test.pypi.org/legacy/
+          skip-existing: true
